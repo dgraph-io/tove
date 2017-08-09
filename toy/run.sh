@@ -23,4 +23,5 @@ alice-record --workload_dir . \
 	../bin/toy
 
 cd ..
-alice-check --traces_dir=traces_dir --checker=./toy_checker.py
+go build -o bin/checker checker.go
+alice-check --traces_dir=traces_dir --checker=./bin/checker
