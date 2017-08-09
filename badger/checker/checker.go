@@ -22,7 +22,44 @@ func main() {
 	stdout := strings.Split(string(buf), "\n")
 
 	//checkAtomicUpdateConstency(stdout)
-	checkBadgerConsistency(stdout)
+	//checkBadgerConsistency(stdout)
+	checkBadgerBigWorkloadConsistency(stdout)
+}
+
+func checkBadgerBigWorkloadConsistency(stdout []string) {
+	kv := StartBadger()
+	defer func() { Must(kv.Close()) }()
+
+	if len(stdout) == 0 {
+		return
+	}
+
+	var lastMsg string
+	for i := len(stdout) - 1; i >= 0; i-- {
+		if strings.HasPrefix(stdout[i], "start:") ||
+			strings.HasPrefix(stdout[i], "stop:") {
+			lastMsg = stdout[i]
+			break
+		}
+	}
+
+	switch lastMsg {
+	case "start:big":
+	case "stop:big":
+		// FIXME: for now, don't do any checks. Just make sure Badger starts
+		// up with no errors.
+		/*
+			for i := 0; i < KeyCount; i++ {
+				const j = Versions - 1
+				Assert(KeyHasValue(
+					kv,
+					ConstructKey(uint16(i)),
+					ConstructValue(uint16(i), uint16(j)),
+				))
+			}
+		*/
+	default:
+	}
 }
 
 func checkBadgerConsistency(stdout []string) {
@@ -33,7 +70,16 @@ func checkBadgerConsistency(stdout []string) {
 		return
 	}
 
-	switch stdout[len(stdout)-1] {
+	var lastMsg string
+	for i := len(stdout) - 1; i >= 0; i-- {
+		if strings.HasPrefix(stdout[i], "start:") ||
+			strings.HasPrefix(stdout[i], "stop:") {
+			lastMsg = stdout[i]
+			break
+		}
+	}
+
+	switch lastMsg {
 	case "start:set-key":
 		if Exists(kv, k1) {
 			Assert(KeyHasValue(kv, k1, v1))
@@ -58,7 +104,7 @@ func checkBadgerConsistency(stdout []string) {
 	case "stop:ins-upd-del":
 		Assert(!Exists(kv, k1))
 	default:
-		//Assert(false) // TODO
+		Assert(false)
 	}
 }
 

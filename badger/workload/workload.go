@@ -18,10 +18,26 @@ func main() {
 
 	Must(os.Chdir("workload_dir"))
 	//atomicUpdateWorkload()
-	badgerWorkload()
+	//badgerWorkload()
+	badgerBigWorkload()
+}
+
+func badgerBigWorkload() {
+	fmt.Println("start:big")
+	kv := StartBadger()
+	for j := 0; j < Versions; j++ {
+		for i := 0; i < KeyCount; i++ {
+			key := ConstructKey(uint16(i))
+			val := ConstructValue(uint16(i), uint16(j))
+			Must(kv.Set(key, val, 0))
+		}
+	}
+	Must(kv.Close())
+	fmt.Println("stop:big")
 }
 
 func badgerWorkload() {
+
 	fmt.Println("start:set-key")
 	kv := StartBadger()
 	Must(kv.Set(k1, v1, 0))
