@@ -18,11 +18,14 @@ var (
 func main() {
 
 	must(os.Chdir(os.Args[1]))
+	checkAtomicUpdateConstency()
+	checkBadgerConsistency()
+}
 
+func checkBadgerConsistency() {
 	opt := &badger.DefaultOptions
 	opt.Dir = "."
 	opt.ValueDir = "."
-
 	kv, err := badger.NewKV(opt)
 	must(err)
 	defer func() { must(kv.Close()) }()
@@ -36,11 +39,9 @@ func main() {
 			log.Fatal("value not set")
 		}
 	}
-
-	checkAtomicUpdate()
 }
 
-func checkAtomicUpdate() {
+func checkAtomicUpdateConstency() {
 	buf, err := ioutil.ReadFile("file1")
 	must(err)
 	str := strings.TrimSpace(string(buf))

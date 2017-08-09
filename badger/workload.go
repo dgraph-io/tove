@@ -16,22 +16,22 @@ var (
 func main() {
 
 	must(os.Chdir("workload_dir"))
+	atomicUpdateWorkload()
+	badgerWorkload()
+}
 
+func badgerWorkload() {
 	opt := &badger.DefaultOptions
 	opt.Dir = "."
 	opt.ValueDir = "."
-
 	kv, err := badger.NewKV(opt)
 	must(err)
+	defer func() { must(kv.Close()) }()
 
 	must(kv.Set(k1, v1, 0))
-
-	must(kv.Close())
-
-	badAtomicUpdate()
 }
 
-func badAtomicUpdate() {
+func atomicUpdateWorkload() {
 	const tmp = "tmp"
 	must(ioutil.WriteFile(tmp, []byte("world"), 0666))
 	must(os.Rename(tmp, "file1"))
