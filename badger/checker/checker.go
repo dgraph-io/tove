@@ -19,43 +19,13 @@ func main() {
 	Must(os.Chdir(os.Args[1]))
 	buf, err := ioutil.ReadFile(os.Args[2])
 	Must(err)
-	stdout := lines(strings.Split(string(buf), "\n"))
+	stdout := strings.Split(string(buf), "\n")
 
 	//checkAtomicUpdateConstency(stdout)
 	checkBadgerConsistency(stdout)
 }
 
-type lines []string
-
-func (l lines) contains(s string) bool {
-	for _, line := range l {
-		if line == s {
-			return true
-		}
-	}
-	return false
-}
-
-func (l lines) finished() bool {
-	for i := len(l) - 1; i >= 0; i-- {
-		if strings.HasPrefix(l[i], "start") {
-			return false
-		}
-	}
-	return true
-}
-
-func (l lines) stage() string {
-	for i := len(l) - 1; i >= 0; i-- {
-		str := l[i]
-		if strings.HasPrefix(str, "start:") {
-			return strings.TrimPrefix(str, "start:")
-		}
-	}
-	return ""
-}
-
-func checkBadgerConsistency(stdout lines) {
+func checkBadgerConsistency(stdout []string) {
 	kv := StartBadger()
 	defer func() { Must(kv.Close()) }()
 
@@ -88,11 +58,11 @@ func checkBadgerConsistency(stdout lines) {
 	case "stop:ins-upd-del":
 		Assert(!Exists(kv, k1))
 	default:
-		//Assert(false)
+		//Assert(false) // TODO
 	}
 }
 
-func checkAtomicUpdateConstency(stdout lines) {
+func checkAtomicUpdateConstency(stdout []string) {
 	buf, err := ioutil.ReadFile("file1")
 	Must(err)
 	str := strings.TrimSpace(string(buf))
