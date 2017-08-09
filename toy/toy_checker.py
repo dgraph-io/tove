@@ -2,6 +2,5 @@
 import os
 import sys
 
-crashed_state_directory = sys.argv[1]
-os.chdir(crashed_state_directory)
+os.chdir(sys.argv[1])
 assert open('file1').read() in ['hello', 'world']
