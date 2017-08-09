@@ -1,4 +1,6 @@
 #!/bin/bash
+#./go_toy_workload.sh && alice-check --traces_dir=traces_dir --checker=./toy_checker.py
+
 set -e
 trap 'error ${LINENO}' ERR
 
@@ -9,10 +11,16 @@ echo -n "hello" > workload_dir/file1
 rm -rf traces_dir
 mkdir traces_dir
 
-go build -o a.out toy.go
+rm -rf bin
+mkdir bin
+
+go build -o bin/toy toy.go
 
 cd workload_dir
 
 alice-record --workload_dir . \
 	--traces_dir ../traces_dir \
-	../a.out
+	../bin/toy
+
+cd ..
+alice-check --traces_dir=traces_dir --checker=./toy_checker.py
