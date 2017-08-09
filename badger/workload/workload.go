@@ -27,10 +27,11 @@ func badgerWorkload() {
 	Must(kv.Close())
 	fmt.Println("stop:set-key")
 
-	//kv = StartBadger()
-	//Must(kv.Delete(k1))
-	//Must(kv.Close())
-	//fmt.Println("del k1")
+	fmt.Println("start:del-key")
+	kv = StartBadger()
+	Must(kv.Delete(k1))
+	Must(kv.Close())
+	fmt.Println("stop:del-key")
 }
 
 func atomicUpdateWorkload() {

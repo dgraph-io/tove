@@ -35,13 +35,13 @@ func (l lines) contains(s string) bool {
 	return false
 }
 
-func (l lines) isRunning() bool {
+func (l lines) finished() bool {
 	for i := len(l) - 1; i >= 0; i-- {
 		if strings.HasPrefix(l[i], "start") {
-			return true
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 func (l lines) stage() string {
@@ -58,26 +58,26 @@ func checkBadgerConsistency(stdout lines) {
 	kv := StartBadger()
 	defer func() { Must(kv.Close()) }()
 
-	if stdout.isRunning() {
-		switch stdout.stage() {
-		case "":
-			Assert(false)
-		case "set-key":
+	switch stdout.stage() {
+	case "": // Didn't start the first stage yet
+	case "set-key":
+		if stdout.finished() {
+			AssertKeyValue(kv, k1, v1)
+		} else {
 			if Exists(kv, k1) {
 				AssertKeyValue(kv, k1, v1)
 			}
-		default:
-			Assert(false)
 		}
-	} else {
-		switch stdout.stage() {
-		case "": // Didn't start the first stage yet.
-		case "set-key":
-			AssertKeyValue(kv, k1, v1)
-		default:
-			Assert(false)
+	case "del-key":
+		if stdout.finished() {
+			Assert(!Exists(kv, k1))
+		} else {
+			if Exists(kv, k1) {
+				AssertKeyValue(kv, k1, v1)
+			}
 		}
-
+	default:
+		Assert(false)
 	}
 }
 
