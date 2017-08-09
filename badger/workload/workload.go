@@ -11,6 +11,7 @@ import (
 var (
 	k1 = []byte("k1")
 	v1 = []byte("value1")
+	v2 = []byte("value2")
 )
 
 func main() {
@@ -27,11 +28,25 @@ func badgerWorkload() {
 	Must(kv.Close())
 	fmt.Println("stop:set-key")
 
+	fmt.Println("start:update-key")
+	kv = StartBadger()
+	Must(kv.Set(k1, v2, 0))
+	Must(kv.Close())
+	fmt.Println("stop:update-key")
+
 	fmt.Println("start:del-key")
 	kv = StartBadger()
 	Must(kv.Delete(k1))
 	Must(kv.Close())
 	fmt.Println("stop:del-key")
+
+	//fmt.Println("start:ins-upd-del")
+	//kv = StartBadger()
+	//Must(kv.Set(k1, v1))
+	//Must(kv.Set(k1, v2))
+	//Must(kv.Delete(k1))
+	//Must(kv.Close())
+	//fmt.Println("stop:ins-upd-del")
 }
 
 func atomicUpdateWorkload() {

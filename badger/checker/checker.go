@@ -11,6 +11,7 @@ import (
 var (
 	k1 = []byte("k1")
 	v1 = []byte("value1")
+	v2 = []byte("value2")
 )
 
 func main() {
@@ -58,26 +59,29 @@ func checkBadgerConsistency(stdout lines) {
 	kv := StartBadger()
 	defer func() { Must(kv.Close()) }()
 
-	switch stdout.stage() {
-	case "": // Didn't start the first stage yet
-	case "set-key":
-		if stdout.finished() {
-			AssertKeyValue(kv, k1, v1)
-		} else {
-			if Exists(kv, k1) {
-				AssertKeyValue(kv, k1, v1)
-			}
+	if len(stdout) == 0 {
+		return
+	}
+
+	switch stdout[len(stdout)-1] {
+	case "start:set-key":
+		if Exists(kv, k1) {
+			Assert(KeyHasValue(kv, k1, v1))
 		}
-	case "del-key":
-		if stdout.finished() {
-			Assert(!Exists(kv, k1))
-		} else {
-			if Exists(kv, k1) {
-				AssertKeyValue(kv, k1, v1)
-			}
+	case "stop:set-key":
+		Assert(KeyHasValue(kv, k1, v1))
+	case "start:update-key":
+		Assert(Exists(kv, k1))
+		Assert(KeyHasValue(kv, k1, v1) || KeyHasValue(kv, k1, v2))
+	case "stop:update-key":
+		Assert(KeyHasValue(kv, k1, v2))
+	case "start:del-key":
+		if Exists(kv, k1) {
+			Assert(KeyHasValue(kv, k1, v2))
 		}
+	case "stop:del-key":
+		Assert(!Exists(kv, k1))
 	default:
-		Assert(false)
 	}
 }
 

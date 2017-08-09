@@ -45,9 +45,9 @@ func Assert(b bool) {
 	}
 }
 
-func AssertKeyValue(kv *badger.KV, k, v []byte) {
+func KeyHasValue(kv *badger.KV, k, v []byte) bool {
 	Assert(Exists(kv, k))
 	item := MustGet(kv, k)
-	Assert(reflect.DeepEqual(v, item.Value()))
 	Assert(reflect.DeepEqual(k, item.Key()))
+	return reflect.DeepEqual(v, item.Value())
 }
