@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -48,7 +47,7 @@ func checkAtomicUpdate() {
 	isHello := str == "hello"
 	isWorld := str == "world"
 	if !isHello && !isWorld {
-		must(errors.New("not hello or world"))
+		log.Fatal("not hello or world")
 	}
 }
 
