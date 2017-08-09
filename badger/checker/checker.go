@@ -81,7 +81,14 @@ func checkBadgerConsistency(stdout lines) {
 		}
 	case "stop:del-key":
 		Assert(!Exists(kv, k1))
+	case "start:ins-upd-del":
+		if Exists(kv, k1) {
+			Assert(KeyHasValue(kv, k1, v1) || KeyHasValue(kv, k1, v2))
+		}
+	case "stop:ins-upd-del":
+		Assert(!Exists(kv, k1))
 	default:
+		//Assert(false)
 	}
 }
 
