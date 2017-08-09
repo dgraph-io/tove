@@ -20,5 +20,5 @@ alice-record --workload_dir workload_dir \
 	bin/workload
 
 alice-check --threads=4 --traces_dir=traces_dir --checker=bin/checker
-#./bin/checker workload_dir
+#./bin/checker workload_dir <(echo -e "kv1=v1\ndel k1")
 

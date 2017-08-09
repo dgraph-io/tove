@@ -2,6 +2,7 @@ package util
 
 import (
 	"log"
+	"reflect"
 
 	"github.com/dgraph-io/badger"
 )
@@ -32,9 +33,9 @@ func Exists(kv *badger.KV, k []byte) bool {
 	return ok
 }
 
-func MustGet(kv *badger.KV, k []byte) badger.KVItem {
-	var item badger.KVItem
-	Must(kv.Get(k, &item))
+func MustGet(kv *badger.KV, k []byte) *badger.KVItem {
+	item := new(badger.KVItem)
+	Must(kv.Get(k, item))
 	return item
 }
 
@@ -42,4 +43,11 @@ func Assert(b bool) {
 	if !b {
 		log.Fatal("Assertion failed")
 	}
+}
+
+func AssertKeyValue(kv *badger.KV, k, v []byte) {
+	Assert(Exists(kv, k))
+	item := MustGet(kv, k)
+	Assert(reflect.DeepEqual(v, item.Value()))
+	Assert(reflect.DeepEqual(k, item.Key()))
 }

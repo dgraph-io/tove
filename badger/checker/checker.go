@@ -3,7 +3,6 @@ package main
 import (
 	"io/ioutil"
 	"os"
-	"reflect"
 	"strings"
 
 	. "github.com/dgraph-io/tove/badger/util"
@@ -19,37 +18,70 @@ func main() {
 	Must(os.Chdir(os.Args[1]))
 	buf, err := ioutil.ReadFile(os.Args[2])
 	Must(err)
-	stdout := records(strings.Split(string(buf), "\n"))
+	stdout := lines(strings.Split(string(buf), "\n"))
 
 	//checkAtomicUpdateConstency(stdout)
 	checkBadgerConsistency(stdout)
 }
 
-type records []string
+type lines []string
 
-func (r records) contains(s string) bool {
-	for _, rec := range r {
-		if rec == s {
+func (l lines) contains(s string) bool {
+	for _, line := range l {
+		if line == s {
 			return true
 		}
 	}
 	return false
 }
 
-func checkBadgerConsistency(stdout records) {
+func (l lines) isRunning() bool {
+	for i := len(l) - 1; i >= 0; i-- {
+		if strings.HasPrefix(l[i], "start") {
+			return true
+		}
+	}
+	return false
+}
+
+func (l lines) stage() string {
+	for i := len(l) - 1; i >= 0; i-- {
+		str := l[i]
+		if strings.HasPrefix(str, "start:") {
+			return strings.TrimPrefix(str, "start:")
+		}
+	}
+	return ""
+}
+
+func checkBadgerConsistency(stdout lines) {
 	kv := StartBadger()
 	defer func() { Must(kv.Close()) }()
 
-	if stdout.contains("k1=v1") {
-		Assert(Exists(kv, k1))
-	}
-	if Exists(kv, k1) {
-		item := MustGet(kv, k1)
-		Assert(reflect.DeepEqual(item.Value(), v1))
+	if stdout.isRunning() {
+		switch stdout.stage() {
+		case "":
+			Assert(false)
+		case "set-key":
+			if Exists(kv, k1) {
+				AssertKeyValue(kv, k1, v1)
+			}
+		default:
+			Assert(false)
+		}
+	} else {
+		switch stdout.stage() {
+		case "": // Didn't start the first stage yet.
+		case "set-key":
+			AssertKeyValue(kv, k1, v1)
+		default:
+			Assert(false)
+		}
+
 	}
 }
 
-func checkAtomicUpdateConstency(stdout records) {
+func checkAtomicUpdateConstency(stdout lines) {
 	buf, err := ioutil.ReadFile("file1")
 	Must(err)
 	str := strings.TrimSpace(string(buf))
