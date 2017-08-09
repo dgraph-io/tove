@@ -12,8 +12,8 @@ mkdir traces_dir
 rm -rf bin
 mkdir bin
 
-go build -o bin/workload workload.go
-go build -o bin/checker checker.go
+go build -o bin/workload workload/workload.go
+go build -o bin/checker checker/checker.go
 
 alice-record --workload_dir workload_dir \
 	--traces_dir traces_dir \
