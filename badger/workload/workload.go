@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	. "github.com/dgraph-io/tove/badger/util"
 )
@@ -32,6 +33,7 @@ func badgerBigWorkload() {
 			Must(kv.Set(key, val, 0))
 		}
 	}
+	time.Sleep(100 * time.Millisecond)
 	Must(kv.Close())
 	fmt.Println("stop:big")
 }

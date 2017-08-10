@@ -11,13 +11,19 @@ import (
 
 func StartBadger() *badger.KV {
 	opt := &badger.DefaultOptions
-	opt.ValueGCRunInterval = time.Second
 	opt.MaxTableSize = 512
 	opt.NumLevelZeroTables = 1
 	opt.NumLevelZeroTablesStall = 2
 	opt.NumMemtables = 1
 	opt.LevelOneSize = 2 << 20
 	opt.ValueLogFileSize = 5 << 20
+
+	// Make GC likely to happen. There is 10MB lower limit on what must be
+	// GC'd, so to get a GC, you'll have to remove this part of the
+	// condition in Badger. See doRunGC in value.go.
+	opt.ValueGCRunInterval = time.Millisecond
+	opt.ValueGCThreshold = 0.001
+
 	opt.Dir = "."
 	opt.ValueDir = "."
 	kv, err := badger.NewKV(opt)
