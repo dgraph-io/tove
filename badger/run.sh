@@ -4,6 +4,7 @@ trap 'error ${LINENO}' ERR
 
 rm -rf workload_dir
 mkdir workload_dir
+echo -n "hello" > workload_dir/file1
 
 rm -rf traces_dir
 mkdir traces_dir
