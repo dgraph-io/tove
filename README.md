@@ -7,6 +7,9 @@ accompanied by a paper named [All File Systems Are Not Created Equal: On the
 Complexity of Crafting Crash-Consistent
 Applications](http://research.cs.wisc.edu/adsl/Publications/alice-osdi14.pdf).
 
+**It's important to read this paper to understand how to interpret ALICE output
+and write/modify ALICE tests.**
+
 ## ALICE Installation
 
 Clone ALICE from `git@github.com:dgraph-io/alice.git`. This is a Dgraph fork of
