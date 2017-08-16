@@ -9,12 +9,6 @@ import (
 	. "github.com/dgraph-io/tove/badger/util"
 )
 
-var (
-	k1 = []byte("k1")
-	v1 = []byte("value1")
-	v2 = []byte("value2")
-)
-
 func main() {
 
 	Must(os.Chdir("workload_dir"))
@@ -39,6 +33,12 @@ func badgerBigWorkload() {
 }
 
 func badgerWorkload() {
+
+	var (
+		k1 = []byte("k1")
+		v1 = []byte("value1")
+		v2 = []byte("value2")
+	)
 
 	fmt.Println("start:set-key")
 	kv := StartBadger()

@@ -3,15 +3,10 @@ package main
 import (
 	"io/ioutil"
 	"os"
+	"reflect"
 	"strings"
 
 	. "github.com/dgraph-io/tove/badger/util"
-)
-
-var (
-	k1 = []byte("k1")
-	v1 = []byte("value1")
-	v2 = []byte("value2")
 )
 
 func main() {
@@ -45,24 +40,43 @@ func checkBadgerBigWorkloadConsistency(stdout []string) {
 
 	switch lastMsg {
 	case "start:big":
-	case "stop:big":
-		// FIXME: for now, don't do any checks. Just make sure Badger starts
-		// up with no errors.
-		/*
-			for i := 0; i < KeyCount; i++ {
-				const j = Versions - 1
-				Assert(KeyHasValue(
-					kv,
-					ConstructKey(uint16(i)),
-					ConstructValue(uint16(i), uint16(j)),
-				))
+		for i := 0; i < KeyCount; i++ {
+			k := ConstructKey(uint16(i))
+			if Exists(kv, k) {
+				hasValidValue := false
+				for j := 0; j < Versions; j++ {
+					kvItem := MustGet(kv, k)
+					v := ConstructValue(uint16(i), uint16(j))
+					if reflect.DeepEqual(kvItem.Value(), v) {
+						hasValidValue = true
+						break
+					}
+				}
+				Assert(hasValidValue)
 			}
-		*/
+		}
+	case "stop:big":
+		for i := 0; i < KeyCount; i++ {
+			const j = Versions - 1
+			Assert(KeyHasValue(
+				kv,
+				ConstructKey(uint16(i)),
+				ConstructValue(uint16(i), uint16(j)),
+			))
+		}
 	default:
+		Assert(false)
 	}
 }
 
 func checkBadgerConsistency(stdout []string) {
+
+	var (
+		k1 = []byte("k1")
+		v1 = []byte("value1")
+		v2 = []byte("value2")
+	)
+
 	kv := StartBadger()
 	defer func() { Must(kv.Close()) }()
 
