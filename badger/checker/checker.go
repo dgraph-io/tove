@@ -64,8 +64,6 @@ func checkBadgerBigWorkloadConsistency(stdout []string) {
 				ConstructValue(uint16(i), uint16(j)),
 			))
 		}
-	default:
-		Assert(false)
 	}
 }
 

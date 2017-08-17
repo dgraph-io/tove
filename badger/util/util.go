@@ -17,7 +17,7 @@ func StartBadger() *badger.KV {
 	opt.NumMemtables = 1
 	opt.LevelOneSize = 2 << 20
 	opt.ValueLogFileSize = 5 << 20
-	opt.SyncWrites = true
+	opt.SyncWrites = false
 
 	// Make GC likely to happen. There is 10MB lower limit on what must be
 	// GC'd, so to get a GC, you'll have to remove this part of the
