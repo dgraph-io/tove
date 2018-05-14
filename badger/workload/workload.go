@@ -19,16 +19,16 @@ func main() {
 
 func badgerBigWorkload() {
 	fmt.Println("start:big")
-	kv := StartBadger()
+	db := StartBadger()
 	for j := 0; j < Versions; j++ {
 		for i := 0; i < KeyCount; i++ {
 			key := ConstructKey(uint16(i))
 			val := ConstructValue(uint16(i), uint16(j))
-			Must(kv.Set(key, val, 0))
+			MustSet(db, key, val)
 		}
 	}
 	time.Sleep(100 * time.Millisecond)
-	Must(kv.Close())
+	Must(db.Close())
 	fmt.Println("stop:big")
 }
 
@@ -41,29 +41,29 @@ func badgerWorkload() {
 	)
 
 	fmt.Println("start:set-key")
-	kv := StartBadger()
-	Must(kv.Set(k1, v1, 0))
-	Must(kv.Close())
+	db := StartBadger()
+	MustSet(db, k1, v1)
+	Must(db.Close())
 	fmt.Println("stop:set-key")
 
 	fmt.Println("start:update-key")
-	kv = StartBadger()
-	Must(kv.Set(k1, v2, 0))
-	Must(kv.Close())
+	db = StartBadger()
+	MustSet(db, k1, v2)
+	Must(db.Close())
 	fmt.Println("stop:update-key")
 
 	fmt.Println("start:del-key")
-	kv = StartBadger()
-	Must(kv.Delete(k1))
-	Must(kv.Close())
+	db = StartBadger()
+	MustDelete(db, k1)
+	Must(db.Close())
 	fmt.Println("stop:del-key")
 
 	fmt.Println("start:ins-upd-del")
-	kv = StartBadger()
-	Must(kv.Set(k1, v1, 0))
-	Must(kv.Set(k1, v2, 0))
-	Must(kv.Delete(k1))
-	Must(kv.Close())
+	db = StartBadger()
+	MustSet(db, k1, v1)
+	MustSet(db, k1, v2)
+	MustDelete(db, k1)
+	Must(db.Close())
 	fmt.Println("stop:ins-upd-del")
 }
 
