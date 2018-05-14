@@ -4,32 +4,24 @@ import (
 	"encoding/binary"
 	"log"
 	"reflect"
-	"time"
-
 	"github.com/dgraph-io/badger"
 )
 
-func StartBadger() *badger.KV {
-	opt := &badger.DefaultOptions
-	opt.MaxTableSize = 512
+func StartBadger() *badger.DB {
+	opt := badger.DefaultOptions
+	opt.MaxTableSize = 2 << 10
 	opt.NumLevelZeroTables = 1
 	opt.NumLevelZeroTablesStall = 2
 	opt.NumMemtables = 1
 	opt.LevelOneSize = 2 << 20
 	opt.ValueLogFileSize = 5 << 20
-	opt.SyncWrites = false
-
-	// Make GC likely to happen. There is 10MB lower limit on what must be
-	// GC'd, so to get a GC, you'll have to remove this part of the
-	// condition in Badger. See doRunGC in value.go.
-	opt.ValueGCRunInterval = time.Millisecond
-	opt.ValueGCThreshold = 0.001
+	opt.SyncWrites = true
 
 	opt.Dir = "."
 	opt.ValueDir = "."
-	kv, err := badger.NewKV(opt)
+	db, err := badger.Open(opt)
 	Must(err)
-	return kv
+	return db
 }
 
 func Must(err error) {
@@ -43,16 +35,48 @@ func MustBool(b bool, err error) bool {
 	return b
 }
 
-func Exists(kv *badger.KV, k []byte) bool {
-	ok, err := kv.Exists(k)
-	Must(err)
-	return ok
+func Exists(db *badger.DB, k []byte) bool {
+	err := db.View(func(txn *badger.Txn) error {
+		_, err := txn.Get(k)
+		return err
+	})
+
+	if err != nil && err != badger.ErrKeyNotFound {
+		log.Fatal(err)
+	}
+
+	return err == nil
 }
 
-func MustGet(kv *badger.KV, k []byte) *badger.KVItem {
-	item := new(badger.KVItem)
-	Must(kv.Get(k, item))
-	return item
+func MustGet(db *badger.DB, k []byte) []byte {
+	var value []byte
+	Must(db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get(k)
+		if err != nil {
+			return err
+		}
+
+		value, err = item.ValueCopy(value)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}))
+
+	return value
+}
+
+func MustSet(db *badger.DB, k []byte, v []byte) {
+	Must(db.Update(func(txn *badger.Txn) error {
+		return txn.Set([]byte(k), []byte(v))
+	}))
+}
+
+func MustDelete(db *badger.DB, k []byte) {
+	Must(db.Update(func(txn *badger.Txn) error {
+		return txn.Delete(k)
+	}))
 }
 
 func Assert(b bool) {
@@ -61,11 +85,10 @@ func Assert(b bool) {
 	}
 }
 
-func KeyHasValue(kv *badger.KV, k, v []byte) bool {
-	Assert(Exists(kv, k))
-	item := MustGet(kv, k)
-	Assert(reflect.DeepEqual(k, item.Key()))
-	return reflect.DeepEqual(v, item.Value())
+func KeyHasValue(db *badger.DB, k, v []byte) bool {
+	Assert(Exists(db, k))
+	value := MustGet(db, k)
+	return reflect.DeepEqual(v, value)
 }
 
 var (

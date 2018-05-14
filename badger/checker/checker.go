@@ -17,13 +17,13 @@ func main() {
 	stdout := strings.Split(string(buf), "\n")
 
 	//checkAtomicUpdateConstency(stdout)
-	//checkBadgerConsistency(stdout)
-	checkBadgerBigWorkloadConsistency(stdout)
+	checkBadgerConsistency(stdout)
+	//checkBadgerBigWorkloadConsistency(stdout)
 }
 
 func checkBadgerBigWorkloadConsistency(stdout []string) {
-	kv := StartBadger()
-	defer func() { Must(kv.Close()) }()
+	db := StartBadger()
+	defer func() { Must(db.Close()) }()
 
 	if len(stdout) == 0 {
 		return
@@ -42,12 +42,12 @@ func checkBadgerBigWorkloadConsistency(stdout []string) {
 	case "start:big":
 		for i := 0; i < KeyCount; i++ {
 			k := ConstructKey(uint16(i))
-			if Exists(kv, k) {
+			if Exists(db, k) {
 				hasValidValue := false
 				for j := 0; j < Versions; j++ {
-					kvItem := MustGet(kv, k)
+					value := MustGet(db, k)
 					v := ConstructValue(uint16(i), uint16(j))
-					if reflect.DeepEqual(kvItem.Value(), v) {
+					if reflect.DeepEqual(value, v) {
 						hasValidValue = true
 						break
 					}
@@ -59,7 +59,7 @@ func checkBadgerBigWorkloadConsistency(stdout []string) {
 		for i := 0; i < KeyCount; i++ {
 			const j = Versions - 1
 			Assert(KeyHasValue(
-				kv,
+				db,
 				ConstructKey(uint16(i)),
 				ConstructValue(uint16(i), uint16(j)),
 			))
@@ -75,8 +75,8 @@ func checkBadgerConsistency(stdout []string) {
 		v2 = []byte("value2")
 	)
 
-	kv := StartBadger()
-	defer func() { Must(kv.Close()) }()
+	db := StartBadger()
+	defer func() { Must(db.Close()) }()
 
 	if len(stdout) == 0 {
 		return
@@ -93,28 +93,28 @@ func checkBadgerConsistency(stdout []string) {
 
 	switch lastMsg {
 	case "start:set-key":
-		if Exists(kv, k1) {
-			Assert(KeyHasValue(kv, k1, v1))
+		if Exists(db, k1) {
+			Assert(KeyHasValue(db, k1, v1))
 		}
 	case "stop:set-key":
-		Assert(KeyHasValue(kv, k1, v1))
+		Assert(KeyHasValue(db, k1, v1))
 	case "start:update-key":
-		Assert(Exists(kv, k1))
-		Assert(KeyHasValue(kv, k1, v1) || KeyHasValue(kv, k1, v2))
+		Assert(Exists(db, k1))
+		Assert(KeyHasValue(db, k1, v1) || KeyHasValue(db, k1, v2))
 	case "stop:update-key":
-		Assert(KeyHasValue(kv, k1, v2))
+		Assert(KeyHasValue(db, k1, v2))
 	case "start:del-key":
-		if Exists(kv, k1) {
-			Assert(KeyHasValue(kv, k1, v2))
+		if Exists(db, k1) {
+			Assert(KeyHasValue(db, k1, v2))
 		}
 	case "stop:del-key":
-		Assert(!Exists(kv, k1))
+		Assert(!Exists(db, k1))
 	case "start:ins-upd-del":
-		if Exists(kv, k1) {
-			Assert(KeyHasValue(kv, k1, v1) || KeyHasValue(kv, k1, v2))
+		if Exists(db, k1) {
+			Assert(KeyHasValue(db, k1, v1) || KeyHasValue(db, k1, v2))
 		}
 	case "stop:ins-upd-del":
-		Assert(!Exists(kv, k1))
+		Assert(!Exists(db, k1))
 	default:
 		Assert(false)
 	}
