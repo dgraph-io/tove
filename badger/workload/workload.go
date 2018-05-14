@@ -24,7 +24,7 @@ func badgerBigWorkload() {
 		for i := 0; i < KeyCount; i++ {
 			key := ConstructKey(uint16(i))
 			val := ConstructValue(uint16(i), uint16(j))
-			Must(kv.Set(key, val, 0))
+			MustSet(kv, key, val)
 		}
 	}
 	time.Sleep(100 * time.Millisecond)
@@ -42,27 +42,27 @@ func badgerWorkload() {
 
 	fmt.Println("start:set-key")
 	kv := StartBadger()
-	Must(kv.Set(k1, v1, 0))
+	MustSet(kv, k1, v1)
 	Must(kv.Close())
 	fmt.Println("stop:set-key")
 
 	fmt.Println("start:update-key")
 	kv = StartBadger()
-	Must(kv.Set(k1, v2, 0))
+	MustSet(kv, k1, v2)
 	Must(kv.Close())
 	fmt.Println("stop:update-key")
 
 	fmt.Println("start:del-key")
 	kv = StartBadger()
-	Must(kv.Delete(k1))
+	MustDelete(kv, k1)
 	Must(kv.Close())
 	fmt.Println("stop:del-key")
 
 	fmt.Println("start:ins-upd-del")
 	kv = StartBadger()
-	Must(kv.Set(k1, v1, 0))
-	Must(kv.Set(k1, v2, 0))
-	Must(kv.Delete(k1))
+	MustSet(kv, k1, v1)
+	MustSet(kv, k1, v2)
+	MustDelete(kv, k1)
 	Must(kv.Close())
 	fmt.Println("stop:ins-upd-del")
 }

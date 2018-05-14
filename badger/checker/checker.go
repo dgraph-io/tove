@@ -45,9 +45,9 @@ func checkBadgerBigWorkloadConsistency(stdout []string) {
 			if Exists(kv, k) {
 				hasValidValue := false
 				for j := 0; j < Versions; j++ {
-					kvItem := MustGet(kv, k)
+					value := MustGet(kv, k)
 					v := ConstructValue(uint16(i), uint16(j))
-					if reflect.DeepEqual(kvItem.Value(), v) {
+					if reflect.DeepEqual(value, v) {
 						hasValidValue = true
 						break
 					}
