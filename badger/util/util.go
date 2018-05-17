@@ -16,6 +16,10 @@ func StartBadger() *badger.DB {
 	opt.LevelOneSize = 2 << 20
 	opt.ValueLogFileSize = 5 << 20
 	opt.SyncWrites = true
+	// Allow truncation, the objective of theses tests is not to avoid
+	// data loss in case of corrupted appends, but rather to test for
+	// atomicity in those appends maintaining the DB integrity.
+	opt.Truncate = true
 
 	opt.Dir = "."
 	opt.ValueDir = "."
