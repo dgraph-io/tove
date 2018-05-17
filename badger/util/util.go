@@ -16,6 +16,8 @@ func StartBadger() *badger.DB {
 	opt.LevelOneSize = 2 << 20
 	opt.ValueLogFileSize = 5 << 20
 	opt.SyncWrites = true
+	// Allow truncation because ALICE would add garbage data to the value log.
+	opt.Truncate = true
 
 	opt.Dir = "."
 	opt.ValueDir = "."
